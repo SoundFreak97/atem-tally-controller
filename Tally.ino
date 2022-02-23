@@ -1,5 +1,13 @@
-// http://librarymanager/All#M5StickC https://github.com/m5stack/M5StickC
 #include <WiFi.h>
+#include <SPI.h>
+#include <SD.h>
+
+
+// Define chip select pin and file names
+#define CHIPSELECT 5
+#define SETTING_FILE "/setting.cfg"
+
+File myFile;
 
 // Download these from here
 // https://github.com/kasperskaarhoj/SKAARHOJ-Open-Engineering/tree/master/ArduinoLibs
@@ -7,19 +15,10 @@
 #include <ATEMbase.h>
 #include <ATEMstd.h>
 
-// Define the IP address of your ATEM switcher
-IPAddress switcherIp(10, 11, 200, 1);
-
-// Put your wifi SSID and password here
-const char* ssid = "";
-const char* password = "";
-
-// Set this to 1 if you want the orientation to update automatically
-#define AUTOUPDATE_ORIENTATION 0
-
 // You can customize the red/green/grey if you want
 // http://www.barth-dev.de/online/rgb565-color-picker/
 #define GRAY  0x0841 //   8   8  8
+#define BLACK 0x0000 //   8   8  8
 #define GREEN 0x0400 //   0 128  0
 #define RED   0xF800 // 255   0  0
 
@@ -35,15 +34,88 @@ int cameraNumber = 1;
 
 int previewTallyPrevious = 1;
 int programTallyPrevious = 1;
-int cameraNumberPrevious = cameraNumber;
+
+String hostname = "tally-" + WiFi.macAddress();
+
+// Some variables to store main settings
+int len, wid, hei;
+char welcomeMsg[64]; 
+const char* ssid;
+const char* psk;
+const char* ip;
+
+String line1, line2, line3, line4, line5, line6, line7;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
-  WiFi.begin(ssid, password);
+  if (!SD.begin(CHIPSELECT)) { //make sure sd card was found
+    while (true);
+  }
+ 
+  hostname.replace(":", "");
+
+  int recNum = 0; // We have read 0 records so far
+
+  myFile = SD.open(SETTING_FILE);
+
+  while (myFile.available())
+  {
+    String list = myFile.readStringUntil('\r\n');
+    //Serial.println(list);
+    recNum++; // Count the record
+
+    if(recNum == 1)
+    {
+       line1 = list;
+    }
+    if(recNum == 2)
+    {
+       line2 = list;
+    }
+    if(recNum == 3)
+    {
+       line3 = list;
+    }
+    if(recNum == 4)
+    {
+       line4 = list;
+    }
+    if(recNum == 5)
+    {
+       line5 = list;
+    }
+    if(recNum == 6)
+    {
+       line6 = list;
+    }
+    if(recNum == 7)
+    {
+       line7 = list;
+    }
+  }
+
+  ssid = line1.c_str();
+  psk = line2.c_str();
+  cameraNumber = line3.toInt();
+
+  // Define the IP address of your ATEM switcher
+  IPAddress switcherIp(line4.toInt(), line5.toInt(), line6.toInt(), line7.toInt());
+
+  Serial.println(ssid);
+  Serial.println(psk);
+  Serial.println(ip);
+
+  Serial.print("ESP Board MAC Address:  ");
+  Serial.println(WiFi.macAddress());
+
+  WiFi.setHostname(hostname.c_str());
+
+  WiFi.begin(ssid, psk);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.println("Connecting to WiFi..");
+    Serial.print("Connecting to WiFi: ");
+    Serial.println(ssid);
   }
   Serial.println("Connected to the WiFi network");
 
@@ -54,12 +126,6 @@ void setup() {
   AtemSwitcher.serialOutput(0x80);
   AtemSwitcher.connect();
 
-  // GPIO
-  pinMode(26, INPUT); 
-  pinMode(36, INPUT);
-  pinMode( 0, INPUT);
-  pinMode(32, INPUT);
-  pinMode(33, INPUT);
 }
 
 void loop() {
@@ -84,12 +150,8 @@ void loop() {
 
   programTallyPrevious = programTally;
   previewTallyPrevious = previewTally;
-  cameraNumberPrevious = cameraNumber;
-  orientationPrevious  = orientation;
 }
 
 void drawLabel(unsigned long int screenColor, unsigned long int labelColor, bool ledValue) {
   digitalWrite(LED_PIN, ledValue);
 }
-
-
