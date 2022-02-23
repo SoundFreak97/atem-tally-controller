@@ -101,12 +101,40 @@ void setup() {
   // Define the IP address of your ATEM switcher
   IPAddress switcherIp(line4.toInt(), line5.toInt(), line6.toInt(), line7.toInt());
 
-  Serial.println(ssid);
-  Serial.println(psk);
-  Serial.println(ip);
+  Serial.println();
+  Serial.println();
+  Serial.println("---");
+  Serial.println("Trying to Connect to WiFi with:");
+  Serial.println();
 
-  Serial.print("ESP Board MAC Address:  ");
+  Serial.print("#### Tally Light MAC Address: ");
   Serial.println(WiFi.macAddress());
+
+  Serial.print("#### Tally Light Host Name:   ");
+  Serial.println(hostname);
+
+  Serial.println(); 
+  Serial.print("#### Tally Light WiFi SSID:   ");
+  Serial.println(ssid);
+  Serial.print("#### Tally Light WiFi PSK:    ");
+  Serial.println(psk);
+  Serial.println();
+  Serial.print("#### Tally Light ATEM IP:     ");
+  Serial.print(line4);
+  Serial.print(".");
+  Serial.print(line5);
+  Serial.print(".");
+  Serial.print(line6);
+  Serial.print(".");
+  Serial.println(line7);
+  Serial.print("#### Tally Light Camera ID:   ");
+  Serial.println(cameraNumber);
+  Serial.println();
+  Serial.println("---");
+  Serial.println();
+
+  Serial.println(); 
+  
 
   WiFi.setHostname(hostname.c_str());
 
@@ -118,11 +146,12 @@ void setup() {
     fill_solid( leds, NUM_LEDS, CRGB(0,0,0));
     FastLED.show();
     delay(500);
-    Serial.print("Connecting to WiFi: ");
-    Serial.println(ssid);
-
+    Serial.println("Connecting to WiFi...");
   }
-  Serial.println("Connected to the WiFi network");
+  
+  Serial.print("\r\nConnected IP: ");
+  Serial.println(WiFi.localIP());
+  Serial.println();
 
   leds[6] = CRGB(0,0,50);     
   FastLED.show(); 
