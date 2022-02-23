@@ -7,9 +7,6 @@
 
 #define DATA_PIN 17
 
-// This is an array of leds.  One item for each led in your strip.
-CRGB leds[NUM_LEDS];
-
 // Define chip select pin and file names
 #define CHIPSELECT 5
 #define SETTING_FILE "/setting.cfg"
@@ -22,18 +19,12 @@ File myFile;
 #include <ATEMbase.h>
 #include <ATEMstd.h>
 
-// You can customize the red/green/grey if you want
-// http://www.barth-dev.de/online/rgb565-color-picker/
-#define GRAY  0x0841 //   8   8  8
-#define BLACK 0x0000 //   8   8  8
-#define GREEN 0x0400 //   0 128  0
-#define RED   0xF800 // 255   0  0
-
-
 
 /////////////////////////////////////////////////////////////
 // You probably don't need to change things below this line
-#define LED_PIN 10
+
+// This is an array of leds.  One item for each led in your strip.
+CRGB leds[NUM_LEDS];
 
 ATEMstd AtemSwitcher;
 
@@ -44,9 +35,6 @@ int programTallyPrevious = 1;
 
 String hostname = "tally-" + WiFi.macAddress();
 
-// Some variables to store main settings
-int len, wid, hei;
-char welcomeMsg[64]; 
 const char* ssid;
 const char* psk;
 const char* ip;
@@ -74,7 +62,6 @@ void setup() {
   while (myFile.available())
   {
     String list = myFile.readStringUntil('\r\n');
-    //Serial.println(list);
     recNum++; // Count the record
 
     if(recNum == 1)
