@@ -1,7 +1,14 @@
 #include <WiFi.h>
 #include <SPI.h>
 #include <SD.h>
+#include <FastLED.h>
 
+#define NUM_LEDS 7
+
+#define DATA_PIN 17
+
+// This is an array of leds.  One item for each led in your strip.
+CRGB leds[NUM_LEDS];
 
 // Define chip select pin and file names
 #define CHIPSELECT 5
@@ -49,7 +56,12 @@ String line1, line2, line3, line4, line5, line6, line7;
 void setup() {
   Serial.begin(115200);
 
+  FastLED.addLeds<WS2812B, DATA_PIN, GRB>(leds, NUM_LEDS); 
+
   if (!SD.begin(CHIPSELECT)) { //make sure sd card was found
+    fill_solid( leds, NUM_LEDS, CRGB(150,50,170));
+    FastLED.show();
+    delay(1000);
     while (true);
   }
  
@@ -113,18 +125,35 @@ void setup() {
 
   WiFi.begin(ssid, psk);
   while (WiFi.status() != WL_CONNECTED) {
+    fill_solid( leds, NUM_LEDS, CRGB(0,0,170));
+    FastLED.show();
+    delay(500);
+    fill_solid( leds, NUM_LEDS, CRGB(0,0,0));
+    FastLED.show();
     delay(500);
     Serial.print("Connecting to WiFi: ");
     Serial.println(ssid);
+
   }
   Serial.println("Connected to the WiFi network");
 
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, HIGH);
+  leds[6] = CRGB(0,0,50);     
+  FastLED.show(); 
 
+  setColorRing(255, 0, 0);
+  delay(1000);
+  setColorRing(255, 255, 0);
+  delay(1000);
+  setColorRing(0, 255, 0);
+  delay(1000);
+  setColorRing(0, 0, 0);
+  
   AtemSwitcher.begin(switcherIp);
   AtemSwitcher.serialOutput(0x80);
   AtemSwitcher.connect();
+
+  leds[6] = CRGB(0,50,0);     
+  FastLED.show(); 
 
 }
 
@@ -138,13 +167,13 @@ void loop() {
 
   if ((programTallyPrevious != programTally) || (previewTallyPrevious != previewTally)) { // changed?
     if (programTally && !previewTally) { // only program
-      drawLabel(RED, BLACK, LOW);
+      setColorRing(255, 0, 0);
     } else if (programTally && previewTally) { // program AND preview
-      drawLabel(RED, GREEN, LOW);
+      setColorRing(255, 255, 0);
     } else if (previewTally && !programTally) { // only preview
-      drawLabel(GREEN, BLACK, HIGH);
+      setColorRing(0, 255, 0);
     } else if (!previewTally || !programTally) { // neither
-      drawLabel(BLACK, GRAY, HIGH);
+      setColorRing(0, 0, 0);
     }
   }
 
@@ -152,6 +181,12 @@ void loop() {
   previewTallyPrevious = previewTally;
 }
 
-void drawLabel(unsigned long int screenColor, unsigned long int labelColor, bool ledValue) {
-  digitalWrite(LED_PIN, ledValue);
+void setColorRing(int r, int g, int b) {
+  leds[0] = CRGB(r,g,b);  
+  leds[1] = CRGB(r,g,b);
+  leds[2] = CRGB(r,g,b);
+  leds[3] = CRGB(r,g,b);
+  leds[4] = CRGB(r,g,b);
+  leds[5] = CRGB(r,g,b);   
+  FastLED.show(); 
 }
